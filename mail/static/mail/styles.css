@@ -1,3 +1,26 @@
 textarea {
     min-height: 400px;
 }
+
+.email {
+    border: 1px solid grey;
+    border-radius: 10px;
+    margin: 5px 5px 5px 0px;
+    padding: 10px 5px 5px 20px;
+}
+
+.subject {
+    font-weight: bold;
+}
+
+.timestamp {
+    font-size: 12px;
+    color: grey;
+    padding-bottom: 0px;
+}
+
+.no-mail {
+    text-align: center;
+    color: grey;
+    font-size: 28px;
+}
