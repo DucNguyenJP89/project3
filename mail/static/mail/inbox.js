@@ -50,7 +50,6 @@ function load_mailbox(mailbox) {
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
 
-
 };
 
 function add_email(email) {
@@ -58,6 +57,11 @@ function add_email(email) {
   //Create new email with subject, sender, timestamp
   const newEmail = document.createElement('div');
   newEmail.className = 'email';
+  if (email.read === true) {
+    newEmail.style.backgroundColor = 'grey';
+  } else {
+    newEmail.style.backgroundColor = 'white';
+  }
   const newSubject = document.createElement('h5');
   newSubject.className = 'subject';
   newSubject.innerHTML = `Subject: ${email.subject}`;
@@ -72,7 +76,51 @@ function add_email(email) {
   newEmail.appendChild(newSender);
   newEmail.appendChild(newTime);
 
+  // Move to view specific email when clicked
+  newEmail.addEventListener('click', function() {
+    // Get email by id
+    fetch(`emails/${email.id}`)
+    .then(response => response.json())
+    .then(show_email)
+
+    fetch(`emails/${email.id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        read: true
+      })
+    })
+
+    // Show the mailbox and hide other views
+    document.querySelector('#emails-view').style.display = 'block';
+    document.querySelector('#compose-view').style.display = 'none';
+
+    // Show the mailbox name
+    document.querySelector('#emails-view').innerHTML = `<h3 class='subject'>${email.subject}</h3>`;
+
+  });
+
   // Add new email to mailbox;
   document.querySelector('#emails-view').append(newEmail);
+
+}
+
+function show_email(email) {
+  
+    //Create email view
+    const details = document.createElement('div');
+    details.className = 'email';
+    const sender = document.createElement('h5');
+    sender.innerHTML = `From: ${email.sender} <hr>`;
+    const recipients = document.createElement('div');
+    recipients.innerHTML = `Sent to: ${email.recipients} <p class='timestamp' style='color:grey'>${email.timestamp}</p> <hr>`;
+    const mailBody = document.createElement('div');
+    mailBody.innerHTML = `${email.body}`;
+
+    details.appendChild(sender);
+    details.appendChild(recipients);
+    details.appendChild(mailBody);
+
+    //Add email to emails-view 
+    document.querySelector('#emails-view').append(details);
 
 }
