@@ -20,6 +20,36 @@ function compose_email() {
   document.querySelector('#compose-recipients').value = '';
   document.querySelector('#compose-subject').value = '';
   document.querySelector('#compose-body').value = '';
+
+  // Add event when submit form
+  document.querySelector('#compose-form').addEventListener('submit', function() {
+    
+    //Get information from form input
+    const recipients = document.querySelector('#compose-recipients').value;
+    const subject = document.querySelector('#compose-subject').value;
+    const body = document.querySelector('#compose-body').value;
+
+    // Send email to recipients
+    fetch('emails', {
+      method: 'POST',
+      body: JSON.stringify({
+        recipients: recipients,
+        subject: subject,
+        body: body
+      })
+    })
+    .then(response => response.json())
+    .then(result => {
+      if (result.status === 400) {
+        compose_email();
+        console.log("Error: " + result.status);
+      }
+      load_mailbox('sent');
+    })
+
+
+  });
+
 };
 
 function load_mailbox(mailbox) {
@@ -68,12 +98,16 @@ function add_email(email) {
   const newSender = document.createElement('p');
   newSender.className = 'sender';
   newSender.innerHTML = `Sender: ${email.sender}`;
+  const newRecipients = document.createElement('p');
+  newRecipients.className = 'recipient';
+  newRecipients.innerHTML = `To: ${email.recipients}`;
   const newTime = document.createElement('p');
   newTime.className = 'timestamp';
   newTime.innerHTML = `${email.timestamp}`;
 
   newEmail.appendChild(newSubject);
   newEmail.appendChild(newSender);
+  newEmail.appendChild(newRecipients);
   newEmail.appendChild(newTime);
 
   // Move to view specific email when clicked
