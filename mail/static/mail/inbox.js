@@ -104,25 +104,50 @@ function add_email(email) {
   const newTime = document.createElement('p');
   newTime.className = 'timestamp';
   newTime.innerHTML = `${email.timestamp}`;
+  const newArchived = document.createElement('button');
+  newArchived.className = 'archive-button';
+  newArchived.innerHTML = 'Archive'; 
+  newArchived.addEventListener('click', function(event) {
+    event.stopPropagation();
+    //Update archived
+    fetch(`emails/${email.id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        archived: true
+      })
+    })
+    .then(response => {
+      console.log(response.status);
+      load_mailbox('inbox');
+    })
+  });
 
   newEmail.appendChild(newSubject);
   newEmail.appendChild(newSender);
   newEmail.appendChild(newRecipients);
   newEmail.appendChild(newTime);
+  if ((email.user !== email.sender) && (email.archived === false)) {
+    newEmail.appendChild(newArchived);
+  }
 
   // Move to view specific email when clicked
-  newEmail.addEventListener('click', function() {
+  newEmail.addEventListener('click', function(event) {
+    event.preventDefault();
     // Get email by id
     fetch(`emails/${email.id}`)
     .then(response => response.json())
-    .then(show_email)
-
-    fetch(`emails/${email.id}`, {
-      method: 'PUT',
-      body: JSON.stringify({
-        read: true
-      })
+    .then(email => {
+      show_email(email);
+      if (email.read === false) {
+        fetch(`emails/${email.id}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            read: true
+          })
+        })
+      }
     })
+
 
     // Show the mailbox and hide other views
     document.querySelector('#emails-view').style.display = 'block';
@@ -149,10 +174,31 @@ function show_email(email) {
     recipients.innerHTML = `Sent to: ${email.recipients} <p class='timestamp' style='color:grey'>${email.timestamp}</p> <hr>`;
     const mailBody = document.createElement('div');
     mailBody.innerHTML = `${email.body}`;
-
+    const unarchiveButton = document.createElement('button');
+    unarchiveButton.className = 'archive-button';
+    unarchiveButton.innerHTML = 'Move to inbox';
+    unarchiveButton.addEventListener('click', () => {
+      fetch(`emails/${email.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          archived: false
+        })
+      })
+      .then(response => {
+        alert(response.status + " Mail unarchived");
+        return load_mailbox('inbox');
+      })
+    })
+    
+    // Add content to the email 
     details.appendChild(sender);
     details.appendChild(recipients);
     details.appendChild(mailBody);
+    if (email.archived === true) {
+      details.appendChild(unarchiveButton);
+    }
+
+
 
     //Add email to emails-view 
     document.querySelector('#emails-view').append(details);
