@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
   load_mailbox('inbox');
 });
 
+
 function compose_email() {
 
   // Show compose view and hide other views
@@ -22,33 +23,32 @@ function compose_email() {
   document.querySelector('#compose-body').value = '';
 
   // Add event when submit form
-  document.querySelector('#compose-form').addEventListener('submit', function() {
-    
+  document.querySelector('#compose-form').addEventListener('submit', function(event) {
+    event.preventDefault();
     //Get information from form input
     const recipients = document.querySelector('#compose-recipients').value;
     const subject = document.querySelector('#compose-subject').value;
     const body = document.querySelector('#compose-body').value;
 
     // Send email to recipients
-    fetch('emails', {
-      method: 'POST',
-      body: JSON.stringify({
-        recipients: recipients,
-        subject: subject,
-        body: body
+    fetch('/emails', {method: 'POST', body: JSON.stringify({
+      recipients: recipients,
+      subject: subject,
+      body: body
       })
     })
-    .then(response => response.json())
-    .then(result => {
-      if (result.status === 400) {
-        compose_email();
-        console.log("Error: " + result.status);
+    .then(response => {
+      if (response.status !== 201) {
+        return response.json().then(result => alert("Error: " + result.error)).then(compose_email());
+      } else if (response.status === 201) {
+        return response.json().then(result => {
+          alert(result.message);
+          load_mailbox('sent');
+        });
       }
-      load_mailbox('sent');
     })
-
-
-  });
+    
+  })
 
 };
 
