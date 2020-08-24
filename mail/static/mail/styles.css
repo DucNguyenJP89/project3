@@ -23,3 +23,9 @@ textarea {
     color: grey;
     font-size: 28px;
 }
+
+.archive-button {
+    border: 1px solid blue;
+    margin: 5px;
+    float: right;
+}

@@ -109,7 +109,7 @@ function add_email(email) {
   newArchived.innerHTML = 'Archive'; 
   newArchived.addEventListener('click', function(event) {
     event.stopPropagation();
-    //Update archived
+    //Update unarchived to archived
     fetch(`emails/${email.id}`, {
       method: 'PUT',
       body: JSON.stringify({
@@ -117,17 +117,38 @@ function add_email(email) {
       })
     })
     .then(response => {
-      console.log(response.status);
+      alert(response.status + " Mail archived");
       load_mailbox('inbox');
     })
   });
+
+  const unarchiveButton = document.createElement('button');
+  unarchiveButton.className = 'archive-button';
+  unarchiveButton.innerHTML = 'Move to inbox';
+  unarchiveButton.addEventListener('click', function(event) {
+      event.stopPropagation();
+
+      //Update archived to unarchived
+      fetch(`emails/${email.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          archived: false
+        })
+      })
+      .then(response => {
+        alert(response.status + " Mail unarchived");
+        return load_mailbox('inbox');
+      })
+    })
 
   newEmail.appendChild(newSubject);
   newEmail.appendChild(newSender);
   newEmail.appendChild(newRecipients);
   newEmail.appendChild(newTime);
   if ((email.user !== email.sender) && (email.archived === false)) {
-    newEmail.appendChild(newArchived);
+    newSubject.appendChild(newArchived);
+  } else if ((email.user !== email.sender) && (email.archived === true)) {
+    newSubject.appendChild(unarchiveButton);
   }
 
   // Move to view specific email when clicked
@@ -174,31 +195,11 @@ function show_email(email) {
     recipients.innerHTML = `Sent to: ${email.recipients} <p class='timestamp' style='color:grey'>${email.timestamp}</p> <hr>`;
     const mailBody = document.createElement('div');
     mailBody.innerHTML = `${email.body}`;
-    const unarchiveButton = document.createElement('button');
-    unarchiveButton.className = 'archive-button';
-    unarchiveButton.innerHTML = 'Move to inbox';
-    unarchiveButton.addEventListener('click', () => {
-      fetch(`emails/${email.id}`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          archived: false
-        })
-      })
-      .then(response => {
-        alert(response.status + " Mail unarchived");
-        return load_mailbox('inbox');
-      })
-    })
     
     // Add content to the email 
     details.appendChild(sender);
     details.appendChild(recipients);
     details.appendChild(mailBody);
-    if (email.archived === true) {
-      details.appendChild(unarchiveButton);
-    }
-
-
 
     //Add email to emails-view 
     document.querySelector('#emails-view').append(details);
