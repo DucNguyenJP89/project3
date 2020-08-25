@@ -41,11 +41,14 @@ function compose_email() {
     })
     .then(response => {
       if (response.status !== 201) {
-        return response.json().then(result => alert("Error: " + result.error)).then(compose_email());
+        return response.json().then(result => {
+          alert("Error: " + result.error);
+          return compose_email();
+        });
       } else if (response.status === 201) {
         return response.json().then(result => {
           alert(result.message);
-          load_mailbox('sent');
+          return load_mailbox('sent');
         });
       }
     })
@@ -227,14 +230,13 @@ function show_email(email) {
       document.querySelector('#compose-subject').value = preSubject;
       document.querySelector('#compose-body').value = "\n" + preBody;
     })
-
     
     // Add content to the email 
     details.appendChild(sender);
     details.appendChild(recipients);
     details.appendChild(mailBody);
     details.appendChild(reply);
-
+    
     //Add email to emails-view 
     document.querySelector('#emails-view').append(details);
 
