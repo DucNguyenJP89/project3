@@ -24,7 +24,9 @@ function compose_email() {
 
   // Add event when submit form
   document.querySelector('#compose-form').addEventListener('submit', function(event) {
+    event.stopPropagation();
     event.preventDefault();
+
     //Get information from form input
     const recipients = document.querySelector('#compose-recipients').value;
     const subject = document.querySelector('#compose-subject').value;
@@ -39,11 +41,14 @@ function compose_email() {
     })
     .then(response => {
       if (response.status !== 201) {
-        return response.json().then(result => alert("Error: " + result.error)).then(compose_email());
+        return response.json().then(result => {
+          alert("Error: " + result.error);
+          return compose_email();
+        });
       } else if (response.status === 201) {
         return response.json().then(result => {
           alert(result.message);
-          load_mailbox('sent');
+          return load_mailbox('sent');
         });
       }
     })
@@ -195,11 +200,34 @@ function show_email(email) {
     recipients.innerHTML = `Sent to: ${email.recipients} <p class='timestamp' style='color:grey'>${email.timestamp}</p> <hr>`;
     const mailBody = document.createElement('div');
     mailBody.innerHTML = `${email.body}`;
+    const reply = document.createElement('button');
+    reply.className = 'reply-button';
+    reply.innerHTML = 'Reply';
+    reply.addEventListener('click', function(event) {
+      event.stopPropagation();
+
+      //Display compsose email form
+      compose_email();
+
+      const preBody = `
+      ============================
+      On ${email.timestamp} 
+      ${email.sender} wrote: 
+      "${email.body}"`
+
+      //Pre-fill form fields
+      document.querySelector('#compose-recipients').value = email.sender;
+      document.querySelector('#compose-subject').value = "Re: " + email.subject;
+      document.querySelector('#compose-body').value = preBody;
+    })
     
     // Add content to the email 
     details.appendChild(sender);
     details.appendChild(recipients);
     details.appendChild(mailBody);
+    if (email.user !== email.sender) {
+      details.appendChild(reply);
+    }
 
     //Add email to emails-view 
     document.querySelector('#emails-view').append(details);
