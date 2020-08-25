@@ -32,3 +32,11 @@ textarea {
     margin: 5px;
     float: right;
 }
+
+.reply-button {
+    font-size: 14px;
+    border: 1px solid blue;
+    border-radius: 5px;
+    padding: 5px;
+    margin-top: 10px;
+}

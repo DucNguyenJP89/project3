@@ -25,6 +25,8 @@ function compose_email() {
   // Add event when submit form
   document.querySelector('#compose-form').addEventListener('submit', function(event) {
     event.preventDefault();
+    event.stopImmediatePropagation();
+
     //Get information from form input
     const recipients = document.querySelector('#compose-recipients').value;
     const subject = document.querySelector('#compose-subject').value;
@@ -108,7 +110,9 @@ function add_email(email) {
   newArchived.className = 'archive-button';
   newArchived.innerHTML = 'Archive'; 
   newArchived.addEventListener('click', function(event) {
+    event.preventDefault();
     event.stopPropagation();
+    
     //Update unarchived to archived
     fetch(`emails/${email.id}`, {
       method: 'PUT',
@@ -126,6 +130,7 @@ function add_email(email) {
   unarchiveButton.className = 'archive-button';
   unarchiveButton.innerHTML = 'Move to inbox';
   unarchiveButton.addEventListener('click', function(event) {
+      event.preventDefault();
       event.stopPropagation();
 
       //Update archived to unarchived
@@ -154,6 +159,7 @@ function add_email(email) {
   // Move to view specific email when clicked
   newEmail.addEventListener('click', function(event) {
     event.preventDefault();
+    event.stopPropagation();
     // Get email by id
     fetch(`emails/${email.id}`)
     .then(response => response.json())
@@ -195,11 +201,39 @@ function show_email(email) {
     recipients.innerHTML = `Sent to: ${email.recipients} <p class='timestamp' style='color:grey'>${email.timestamp}</p> <hr>`;
     const mailBody = document.createElement('div');
     mailBody.innerHTML = `${email.body}`;
+    const reply = document.createElement('button');
+    reply.className = 'reply-button';
+    reply.innerHTML = 'Reply';
+    reply.addEventListener('click', function(event) {
+      event.preventDefault();
+
+      //Load compose email view
+      compose_email();
+
+      //Create pre-fill content
+      const preBody = `================
+      On ${email.timestamp}
+      ${email.sender} wrote: ${email.body}`
+
+      const pattern = new RegExp(/\bRe:/i);
+      if (pattern.test(email.subject)) {
+        preSubject = email.subject;
+      } else {
+        preSubject = "Re: " + email.subject;
+      }
+
+      //Pre-fill information
+      document.querySelector('#compose-recipients').value = email.sender;
+      document.querySelector('#compose-subject').value = preSubject;
+      document.querySelector('#compose-body').value = "\n" + preBody;
+    })
+
     
     // Add content to the email 
     details.appendChild(sender);
     details.appendChild(recipients);
     details.appendChild(mailBody);
+    details.appendChild(reply);
 
     //Add email to emails-view 
     document.querySelector('#emails-view').append(details);
